@@ -20,6 +20,7 @@ c.execute('''
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         person_id INTEGER NOT NULL,
         date TEXT NOT NULL,
+        time TEXT NOT NULL,
         FOREIGN KEY (person_id) REFERENCES persons(id)
     )
 ''')

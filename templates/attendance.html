@@ -2,31 +2,361 @@
 {% block title %}تسجيل الحضور{% endblock %}
 
 {% block content %}
-    <h1>تسجيل الحضور</h1>
-    <div class="date-label">التاريخ: {{ current_date }} - {{ day_name }}</div>
+    <h1>✅ تسجيل الحضور</h1>
+    
+    <div class="date-info card">
+        <h2>📅 {{ arabic_day_name }} - {{ current_date }}</h2>
+        <p>اختر الأشخاص الحاضرين اليوم</p>
+    </div>
 
-    <form method="post" action="/attendance">
-        <table>
-            <thead>
-                <tr>
-                    <th>الاسم</th>
-                    <th>✅ حضر</th>
-                    <th>الحالة</th>
-                    <th>وقت الحضور</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for person in persons %}
-                <tr>
-                    <td>{{ person[1] }}</td>
-                    <td><input type="checkbox" name="person" value="{{ person[0] }}" {% if person[2] == '✅' %}checked{% endif %}></td>
-                    <td>{{ person[2] }}</td>
-                    <td>{{ person[3] if person[3] else '---' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Stage Filter Buttons -->
+    <div class="filter-container">
+        <button class="filter-btn" data-filter="all" onclick="filterByStage('all')">جميع المراحل</button>
+        <button class="filter-btn" data-filter="أولى" onclick="filterByStage('أولى')">المرحلة الأولى</button>
+        <button class="filter-btn" data-filter="ثانية" onclick="filterByStage('ثانية')">المرحلة الثانية</button>
+        <button class="filter-btn" data-filter="ثالثة" onclick="filterByStage('ثالثة')">المرحلة الثالثة</button>
+    </div>
 
-        <button type="submit">تحديث الحضور</button>
+    <form method="post" action="/attendance" id="attendanceForm">
+        <div class="persons-grid" id="personsGrid">
+            {% for person in persons %}
+            <div class="person-attendance-card" data-stage="{{ person.grade }}" data-person-id="{{ person[0] }}">
+                <div class="person-header">
+                    <div class="person-info">
+                        <div class="person-name">{{ person[1] }}</div>
+                        <div class="person-details">
+                            <span class="stage-badge">{{ person.grade }}</span> • 
+                            <span class="gender-badge">{{ person.gender }}</span>
+                        </div>
+                    </div>
+                    <div class="attendance-status">
+                        {% if person[2] == '✅' %}
+                            <span class="status-present">حاضر</span>
+                        {% else %}
+                            <span class="status-absent">غائب</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="attendance-control">
+                    <label class="attendance-checkbox">
+                        <input type="checkbox" name="person" value="{{ person[0] }}" 
+                               {% if person[2] == '✅' %}checked{% endif %}
+                               onchange="updateAttendanceStatus(this, {{ person[0] }})">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">
+                            {% if person[3] %}
+                                وقت الحضور: {{ person[3] }}
+                            {% else %}
+                                تسجيل الحضور
+                            {% endif %}
+                        </span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large">
+                💾 حفظ الحضور
+                <span class="loading hidden"></span>
+            </button>
+            <div class="attendance-summary">
+                <span id="presentCount">0</span> حاضر • 
+                <span id="absentCount">0</span> غائب
+            </div>
+        </div>
     </form>
+
+    <style>
+        .date-info {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .date-info h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            border: none;
+        }
+
+        .date-info p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .persons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .person-attendance-card {
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-medium);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .person-attendance-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-large);
+            border-color: var(--primary-color);
+        }
+
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .person-info .person-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .person-details {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .stage-badge, .gender-badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .gender-badge {
+            background-color: var(--accent-color);
+        }
+
+        .attendance-status {
+            text-align: center;
+        }
+
+        .status-present {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-absent {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .attendance-control {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .attendance-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s ease;
+        }
+
+        .attendance-checkbox:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .attendance-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+        }
+
+        .checkmark {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .attendance-checkbox input[type="checkbox"]:checked + .checkmark {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .attendance-checkbox input[type="checkbox"]:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .checkbox-label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-medium);
+            position: sticky;
+            bottom: 2rem;
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .attendance-summary {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .attendance-summary span {
+            color: var(--primary-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .persons-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .person-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .attendance-checkbox {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+        }
+
+        /* Animation for status changes */
+        .person-attendance-card.status-changed {
+            animation: statusChange 0.5s ease;
+        }
+
+        @keyframes statusChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+
+    <script>
+        function updateAttendanceStatus(checkbox, personId) {
+            const card = checkbox.closest('.person-attendance-card');
+            const statusElement = card.querySelector('.attendance-status span');
+            const checkboxLabel = card.querySelector('.checkbox-label');
+            
+            // Add animation
+            card.classList.add('status-changed');
+            setTimeout(() => card.classList.remove('status-changed'), 500);
+            
+            if (checkbox.checked) {
+                statusElement.textContent = 'حاضر';
+                statusElement.className = 'status-present';
+                checkboxLabel.textContent = 'سيتم تسجيل وقت الحضور عند الحفظ';
+            } else {
+                statusElement.textContent = 'غائب';
+                statusElement.className = 'status-absent';
+                checkboxLabel.textContent = 'تسجيل الحضور';
+            }
+            
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const checkboxes = document.querySelectorAll('input[name="person"]');
+            const visibleCheckboxes = Array.from(checkboxes).filter(cb => 
+                !cb.closest('.person-attendance-card').style.display || 
+                cb.closest('.person-attendance-card').style.display !== 'none'
+            );
+            
+            const presentCount = visibleCheckboxes.filter(cb => cb.checked).length;
+            const absentCount = visibleCheckboxes.length - presentCount;
+            
+            document.getElementById('presentCount').textContent = presentCount;
+            document.getElementById('absentCount').textContent = absentCount;
+        }
+
+        // Enhanced filter function for attendance page
+        function filterByStage(stage) {
+            const items = document.querySelectorAll('[data-stage]');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            // Update active filter button
+            filterBtns.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-filter="${stage}"]`).classList.add('active');
+            
+            // Show/hide items based on stage
+            items.forEach(item => {
+                if (stage === 'all' || item.dataset.stage === stage) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            updateSummary();
+        }
+
+        // Form submission with loading state
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            const button = this.querySelector('button[type="submit"]');
+            const loading = button.querySelector('.loading');
+            
+            button.disabled = true;
+            loading.classList.remove('hidden');
+            button.querySelector('span:first-child').textContent = 'جاري الحفظ...';
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            filterByStage('all');
+            updateSummary();
+        });
+    </script>
 {% endblock %}
