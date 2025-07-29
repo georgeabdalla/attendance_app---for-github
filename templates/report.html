@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}تقرير الحضور{% endblock %}
+
+{% block content %}
+    <h1>📊 تقرير الحضور</h1>
+
+    <!-- ✅ تقرير حسب التاريخ -->
+    <form method="post">
+        <label for="date">اختر التاريخ:</label><br>
+        <select name="date" id="date" required>
+            <option value="">-- اختر تاريخ --</option>
+            {% for d in available_dates %}
+                <option value="{{ d }}" {% if selected_date == d %}selected{% endif %}>{{ d }}</option>
+            {% endfor %}
+        </select><br><br>
+        <button type="submit">عرض التقرير</button>
+    </form>
+
+    {% if selected_date %}
+        <h2 style="margin-top: 30px;">📅 التاريخ: {{ selected_date }}</h2>
+        <div style="display: flex; gap: 40px; flex-wrap: wrap; justify-content: space-around; margin-top: 20px;">
+            <div style="flex: 1;">
+                <h3>✅ الحضور ({{ present_names|length }})</h3>
+                <table>
+                    <thead><tr><th>الاسم</th></tr></thead>
+                    <tbody>
+                        {% for name in present_names %}
+                            <tr><td>{{ name }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="flex: 1;">
+                <h3>❌ الغياب ({{ absent_names|length }})</h3>
+                <table>
+                    <thead><tr><th>الاسم</th></tr></thead>
+                    <tbody>
+                        {% for name in absent_names %}
+                            <tr><td>{{ name }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    <hr style="margin: 50px 0;">
+
+    
+   
+
+   
+
+    <!-- 🔍 بحث مفصل حسب الرقم ومن تاريخ إلى تاريخ -->
+    <h2>🔎 تقرير مفصل عن شخص</h2>
+    <form method="post">
+        <label for="search_id">رقم الشخص (ترتيب الجدول):</label><br>
+        <input type="text" name="search_id" id="search_id" required value="{{ person_search }}"><br>
+
+        <label for="start_date">من:</label>
+        <input type="date" name="start_date" id="start_date" required><br>
+
+        <label for="end_date">إلى:</label>
+        <input type="date" name="end_date" id="end_date" required><br>
+
+        <button type="submit">عرض التقرير</button>
+    </form>
+
+    {% if person_result %}
+        <h3 style="margin-top: 30px;">نتائج التقرير لـ: <span style="color: #2b7bff;">{{ person_result.name }}</span></h3>
+        <div style="display: flex; gap: 40px; flex-wrap: wrap; justify-content: space-around; margin-top: 20px;">
+            <div style="flex: 1;">
+                <h4>✅ عدد أيام الحضور: {{ person_result.present_count }}</h4>
+                <ul>
+                    {% for d in person_result.present_dates %}
+                        <li>{{ d }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div style="flex: 1;">
+                <h4>❌ عدد أيام الغياب: {{ person_result.absent_count }}</h4>
+                <ul>
+                    {% for d in person_result.absent_dates %}
+                        <li>{{ d }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+     <!-- 🗑️ حذف يوم -->
+     <h2>🗑️ حذف يوم</h2>
+     <form method="post">
+         <label for="delete_date">اختر التاريخ:</label><br>
+         <select name="delete_date" id="delete_date" required>
+             <option value="">-- اختر تاريخ --</option>
+             {% for d in available_dates %}
+                 <option value="{{ d }}">{{ d }}</option>
+             {% endfor %}
+         </select><br><br>
+         <button type="submit">حذف اليوم</button>
+     </form>
+ 
+     <hr style="margin: 50px 0;">
+{% endblock %}

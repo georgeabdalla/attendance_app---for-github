@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}تسجيل الحضور{% endblock %}
+
+{% block content %}
+    <h1>تسجيل الحضور</h1>
+    <div class="date-label">التاريخ: {{ current_date }} - {{ day_name }}</div>
+
+    <form method="post" action="/attendance">
+        <table>
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>✅ حضر</th>
+                    <th>الحالة</th>
+                    <th>وقت الحضور</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for person in persons %}
+                <tr>
+                    <td>{{ person[1] }}</td>
+                    <td><input type="checkbox" name="person" value="{{ person[0] }}" {% if person[2] == '✅' %}checked{% endif %}></td>
+                    <td>{{ person[2] }}</td>
+                    <td>{{ person[3] if person[3] else '---' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit">تحديث الحضور</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}إضافة شخص جديد{% endblock %}
+
+{% block content %}
+  <h1>➕ إضافة شخص جديد</h1>
+
+  <!-- فورم الإضافة -->
+  <form method="post" action="{{ url_for('add_person') }}" class="add-form">
+    <input type="text" name="name" placeholder="الاسم بالكامل" required>
+
+    <div class="radio-group">
+      <label>النوع:</label>
+      <label><input type="radio" name="gender" value="ذكر" required> ذكر</label>
+      <label><input type="radio" name="gender" value="أنثى"> أنثى</label>
+    </div>
+
+    <div class="radio-group">
+      <label>المرحلة:</label>
+      <label><input type="radio" name="grade" value="أولى" required> أولى</label>
+      <label><input type="radio" name="grade" value="ثانية"> ثانية</label>
+      <label><input type="radio" name="grade" value="ثالثة"> ثالثة</label>
+    </div>
+
+    <button type="submit" class="add-btn">إضافة</button>
+  </form>
+
+  <hr>
+
+  <!-- عرض الأشخاص في جدول -->
+  <h2>👥 الأشخاص المسجلون</h2>
+  <div class="table-container">
+    <table class="persons-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>الاسم</th>
+          <th>المرحلة</th>
+          <th>النوع</th>
+          <th>إجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for person in persons %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <form method="post" action="{{ url_for('edit_person', person_id=person.id) }}" class="inline-form">
+              <td>
+                <input type="text" name="name" value="{{ person.name }}" required>
+              </td>
+              <td>{{ person.grade }}</td>
+              <td>{{ person.gender }}</td>
+              <td>
+                <button type="submit" class="edit-btn">✏️ تعديل</button>
+              </td>
+            </form>
+            <td>
+              <form method="post" action="{{ url_for('delete_person', person_id=person.id) }}" class="inline-form" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
+                <button type="submit" class="delete-btn">🗑️ حذف</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

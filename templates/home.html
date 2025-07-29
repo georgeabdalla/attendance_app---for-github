@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+    <h2>مرحبًا بك في تسجيل الحضور</h2>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
+        <a href="/add" class="home-button">➕ إضافة شخص جديد</a>
+        <a href="/attendance" class="home-button">✅ تسجيل الحضور</a>
+        <a href="/report" class="home-button">📊 عرض التقارير</a>
+    </div>
+{% endblock %}
