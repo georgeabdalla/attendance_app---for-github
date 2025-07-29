@@ -532,24 +532,7 @@
             element.classList.toggle('hidden');
         }
 
-        // Filter functionality
-        function filterByStage(stage) {
-            const items = document.querySelectorAll('[data-stage]');
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            
-            // Update active filter button
-            filterBtns.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-filter="${stage}"]`).classList.add('active');
-            
-            // Show/hide items based on stage
-            items.forEach(item => {
-                if (stage === 'all' || item.dataset.stage === stage) {
-                    showElement(item);
-                } else {
-                    hideElement(item);
-                }
-            });
-        }
+        // Filter functionality - now handled by individual pages
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {

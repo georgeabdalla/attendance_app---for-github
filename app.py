@@ -221,7 +221,8 @@ def report():
         person_search=person_search,
         person_result=person_result,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        persons_with_row_number=persons_with_row_number
     )
 if __name__ == '__main__':
     app.run(debug=True)
