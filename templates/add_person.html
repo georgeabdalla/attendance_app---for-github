@@ -4,63 +4,237 @@
 {% block content %}
   <h1>➕ إضافة شخص جديد</h1>
 
-  <!-- فورم الإضافة -->
-  <form method="post" action="{{ url_for('add_person') }}" class="add-form">
-    <input type="text" name="name" placeholder="الاسم بالكامل" required>
-
-    <div class="radio-group">
-      <label>النوع:</label>
-      <label><input type="radio" name="gender" value="ذكر" required> ذكر</label>
-      <label><input type="radio" name="gender" value="أنثى"> أنثى</label>
-    </div>
-
-    <div class="radio-group">
-      <label>المرحلة:</label>
-      <label><input type="radio" name="grade" value="أولى" required> أولى</label>
-      <label><input type="radio" name="grade" value="ثانية"> ثانية</label>
-      <label><input type="radio" name="grade" value="ثالثة"> ثالثة</label>
-    </div>
-
-    <button type="submit" class="add-btn">إضافة</button>
-  </form>
-
-  <hr>
-
-  <!-- عرض الأشخاص في جدول -->
-  <h2>👥 الأشخاص المسجلون</h2>
-  <div class="table-container">
-    <table class="persons-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>الاسم</th>
-          <th>المرحلة</th>
-          <th>النوع</th>
-          <th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for person in persons %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <form method="post" action="{{ url_for('edit_person', person_id=person.id) }}" class="inline-form">
-              <td>
-                <input type="text" name="name" value="{{ person.name }}" required>
-              </td>
-              <td>{{ person.grade }}</td>
-              <td>{{ person.gender }}</td>
-              <td>
-                <button type="submit" class="edit-btn">✏️ تعديل</button>
-              </td>
-            </form>
-            <td>
-              <form method="post" action="{{ url_for('delete_person', person_id=person.id) }}" class="inline-form" onsubmit="return confirm('هل أنت متأكد من الحذف؟')">
-                <button type="submit" class="delete-btn">🗑️ حذف</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Stage Filter Buttons -->
+  <div class="filter-container">
+    <button class="filter-btn" data-filter="all" onclick="filterByStage('all')">جميع المراحل</button>
+    <button class="filter-btn" data-filter="أولى" onclick="filterByStage('أولى')">المرحلة الأولى</button>
+    <button class="filter-btn" data-filter="ثانية" onclick="filterByStage('ثانية')">المرحلة الثانية</button>
+    <button class="filter-btn" data-filter="ثالثة" onclick="filterByStage('ثالثة')">المرحلة الثالثة</button>
   </div>
+
+  <!-- Add Person Form -->
+  <div class="form-container" id="addPersonForm">
+    <h2>📝 إضافة شخص جديد</h2>
+    <form method="post" action="{{ url_for('add_person') }}">
+      <div class="form-group">
+        <label for="name">الاسم بالكامل</label>
+        <input type="text" id="name" name="name" placeholder="أدخل الاسم بالكامل" required>
+      </div>
+
+      <div class="form-group">
+        <label>النوع</label>
+        <div class="radio-group">
+          <label><input type="radio" name="gender" value="ذكر" required> ذكر</label>
+          <label><input type="radio" name="gender" value="أنثى"> أنثى</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>المرحلة</label>
+        <div class="radio-group">
+          <label><input type="radio" name="grade" value="أولى" required> المرحلة الأولى</label>
+          <label><input type="radio" name="grade" value="ثانية"> المرحلة الثانية</label>
+          <label><input type="radio" name="grade" value="ثالثة"> المرحلة الثالثة</label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">✅ إضافة الشخص</button>
+    </form>
+  </div>
+
+  <!-- People List -->
+  <div class="card">
+    <h2>👥 الأشخاص المسجلون ({{ persons|length }})</h2>
+    
+    {% if persons %}
+      <div id="personsList">
+        {% for person in persons %}
+          <div class="person-card" data-stage="{{ person.grade }}" data-person-id="{{ person.id }}">
+            <div class="person-info">
+              <div class="person-name">{{ person.name }}</div>
+              <div class="person-details">
+                <span class="stage-badge">{{ person.grade }}</span> • 
+                <span class="gender-badge">{{ person.gender }}</span>
+              </div>
+            </div>
+            <div class="person-actions">
+              <button class="btn btn-warning btn-sm" onclick="showEditForm({{ person.id }}, '{{ person.name }}', '{{ person.gender }}', '{{ person.grade }}')">
+                ✏️ تعديل
+              </button>
+              <form method="post" action="{{ url_for('delete_person', person_id=person.id) }}" style="display: inline;" 
+                    onsubmit="return confirm('هل أنت متأكد من حذف {{ person.name }}؟')">
+                <button type="submit" class="btn btn-danger btn-sm">🗑️ حذف</button>
+              </form>
+            </div>
+            
+            <!-- Hidden Edit Form -->
+            <div class="edit-form hidden" id="editForm{{ person.id }}">
+              <form method="post" action="{{ url_for('edit_person', person_id=person.id) }}">
+                <div class="form-group">
+                  <label>الاسم</label>
+                  <input type="text" name="name" value="{{ person.name }}" required>
+                </div>
+                <div class="form-group">
+                  <label>النوع</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="gender" value="ذكر" {% if person.gender == 'ذكر' %}checked{% endif %}> ذكر</label>
+                    <label><input type="radio" name="gender" value="أنثى" {% if person.gender == 'أنثى' %}checked{% endif %}> أنثى</label>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>المرحلة</label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="grade" value="أولى" {% if person.grade == 'أولى' %}checked{% endif %}> الأولى</label>
+                    <label><input type="radio" name="grade" value="ثانية" {% if person.grade == 'ثانية' %}checked{% endif %}> الثانية</label>
+                    <label><input type="radio" name="grade" value="ثالثة" {% if person.grade == 'ثالثة' %}checked{% endif %}> الثالثة</label>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-success btn-sm">💾 حفظ التغييرات</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="hideEditForm({{ person.id }})">❌ إلغاء</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>لا يوجد أشخاص مسجلون بعد. ابدأ بإضافة أول شخص!</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <style>
+    .stage-badge, .gender-badge {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .gender-badge {
+      background-color: var(--accent-color);
+    }
+
+    .person-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary {
+      background-color: var(--text-secondary);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #4b5563;
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+      font-size: 18px;
+    }
+
+    .empty-state p {
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .person-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .person-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <script>
+    let currentEditForm = null;
+
+    function showEditForm(personId, name, gender, grade) {
+      // Hide any currently open edit form
+      if (currentEditForm) {
+        hideEditForm(currentEditForm);
+      }
+
+      // Hide the add person form
+      const addForm = document.getElementById('addPersonForm');
+      addForm.style.display = 'none';
+
+      // Show the edit form for this person
+      const editForm = document.getElementById(`editForm${personId}`);
+      editForm.classList.remove('hidden');
+      currentEditForm = personId;
+
+      // Scroll to the edit form
+      editForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function hideEditForm(personId) {
+      const editForm = document.getElementById(`editForm${personId}`);
+      editForm.classList.add('hidden');
+      
+      // Show the add person form again
+      const addForm = document.getElementById('addPersonForm');
+      addForm.style.display = 'block';
+      
+      currentEditForm = null;
+    }
+
+    // Enhanced filter function for add person page
+    function filterByStage(stage) {
+      const items = document.querySelectorAll('[data-stage]');
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      
+      // Update active filter button
+      filterBtns.forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`[data-filter="${stage}"]`).classList.add('active');
+      
+      // Show/hide items based on stage
+      items.forEach(item => {
+        if (stage === 'all' || item.dataset.stage === stage) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      // Update the count display
+      const visibleCount = document.querySelectorAll(`[data-stage${stage === 'all' ? '' : '="' + stage + '"'}]:not([style*="display: none"])`).length;
+      const countElement = document.querySelector('h2');
+      if (stage === 'all') {
+        countElement.textContent = `👥 الأشخاص المسجلون ({{ persons|length }})`;
+      } else {
+        countElement.textContent = `👥 ${stage} (${visibleCount})`;
+      }
+    }
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set "all" as active filter by default
+      filterByStage('all');
+    });
+  </script>
 {% endblock %}

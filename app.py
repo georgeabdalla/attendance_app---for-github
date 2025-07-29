@@ -36,14 +36,17 @@ def add_person():
 @app.route('/edit_person/<int:person_id>', methods=['POST'])
 def edit_person(person_id):
     new_name = request.form['name'].strip()
+    new_gender = request.form['gender']
+    new_grade = request.form['grade']
 
     conn = sqlite3.connect('attendance.db')
     c = conn.cursor()
-    c.execute("UPDATE persons SET name = ? WHERE id = ?", (new_name, person_id))
+    c.execute("UPDATE persons SET name = ?, gender = ?, grade = ? WHERE id = ?", 
+              (new_name, new_gender, new_grade, person_id))
     conn.commit()
     conn.close()
 
-    flash('✏️ تم تعديل الاسم بنجاح')
+    flash('✏️ تم تعديل بيانات الشخص بنجاح')
     return redirect(url_for('add_person'))
 
 @app.route('/delete_person/<int:person_id>', methods=['POST'])
@@ -68,6 +71,18 @@ def attendance():
 
     today = date.today().isoformat()
     day_name = date.today().strftime('%A')  # اسم اليوم
+    
+    # تحويل أسماء الأيام إلى العربية
+    arabic_days = {
+        'Monday': 'الاثنين',
+        'Tuesday': 'الثلاثاء', 
+        'Wednesday': 'الأربعاء',
+        'Thursday': 'الخميس',
+        'Friday': 'الجمعة',
+        'Saturday': 'السبت',
+        'Sunday': 'الأحد'
+    }
+    arabic_day_name = arabic_days.get(day_name, day_name)
 
     if request.method == 'POST':
         selected_ids = request.form.getlist('person')  # الأشخاص الذين تم تحديدهم
@@ -101,7 +116,7 @@ def attendance():
     c.execute("""
         SELECT p.id, p.name, 
                CASE WHEN a.id IS NOT NULL THEN '✅' ELSE '❌' END AS attendance_status,
-               a.time
+               a.time, p.grade, p.gender
         FROM persons p
         LEFT JOIN attendance a ON p.id = a.person_id AND a.date = ?
         ORDER BY p.name
@@ -109,7 +124,8 @@ def attendance():
     persons = c.fetchall()
     conn.close()
 
-    return render_template('attendance.html', persons=persons, current_date=today, day_name=day_name)
+    return render_template('attendance.html', persons=persons, current_date=today, 
+                         day_name=day_name, arabic_day_name=arabic_day_name)
 # صفحة عرض التقارير
 @app.route('/report', methods=['GET', 'POST'])
 def report():
