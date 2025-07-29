@@ -9,6 +9,24 @@
         <h2>📅 تقرير يومي</h2>
         <p>عرض حضور وغياب الأشخاص في تاريخ محدد</p>
         
+        {% if available_dates %}
+        <div class="available-dates-info">
+            <h4>📋 التواريخ المتاحة للتقارير:</h4>
+            <div class="dates-preview">
+                {% for date in available_dates[:5] %}
+                <span class="date-badge present">{{ date }}</span>
+                {% endfor %}
+                {% if available_dates|length > 5 %}
+                <span class="more-dates">... و {{ available_dates|length - 5 }} تاريخ آخر</span>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="no-data-message">
+            <p>⚠️ لا توجد بيانات حضور متاحة حتى الآن. يرجى تسجيل الحضور أولاً من صفحة "تسجيل الحضور".</p>
+        </div>
+        {% endif %}
+        
         <form method="post" class="report-form">
             <div class="form-group">
                 <label for="date">اختر التاريخ</label>
@@ -53,16 +71,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for name in present_names %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ name }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="2" class="empty-row">لا يوجد حضور في هذا التاريخ</td>
-                                </tr>
-                                {% endfor %}
+                                {% if present_names %}
+                                    {% for name in present_names %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2" class="empty-row">لا يوجد حضور في هذا التاريخ</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -79,16 +99,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for name in absent_names %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ name }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="2" class="empty-row">جميع الأشخاص حاضرون</td>
-                                </tr>
-                                {% endfor %}
+                                {% if absent_names %}
+                                    {% for name in absent_names %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2" class="empty-row">جميع الأشخاص حاضرون</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -102,6 +124,23 @@
     <div class="card">
         <h2>🔍 تقرير شخص محدد</h2>
         <p>عرض سجل حضور شخص معين خلال فترة زمنية</p>
+        
+        <!-- Person List Helper -->
+        <div class="person-list-helper">
+            <h4>📋 قائمة الأشخاص المسجلين:</h4>
+            <div class="persons-grid-compact">
+                {% if persons_with_row_number %}
+                    {% for row_num, person in persons_with_row_number.items() %}
+                    <div class="person-compact">
+                        <span class="person-number">{{ row_num }}</span>
+                        <span class="person-name">{{ person[1] }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="helper-text">استخدم الرقم المقابل لكل شخص في النموذج أدناه</p>
+                {% endif %}
+            </div>
+        </div>
         
         <form method="post" class="report-form">
             <div class="form-row">
@@ -158,22 +197,26 @@
                 <div class="detail-section">
                     <h4>✅ تواريخ الحضور</h4>
                     <div class="dates-list">
-                        {% for date in person_result.present_dates %}
-                        <span class="date-badge present">{{ date }}</span>
-                        {% empty %}
-                        <p class="empty-message">لا توجد أيام حضور في هذه الفترة</p>
-                        {% endfor %}
+                        {% if person_result.present_dates %}
+                            {% for date in person_result.present_dates %}
+                            <span class="date-badge present">{{ date }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="empty-message">لا توجد أيام حضور في هذه الفترة</p>
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="detail-section">
                     <h4>❌ تواريخ الغياب</h4>
                     <div class="dates-list">
-                        {% for date in person_result.absent_dates %}
-                        <span class="date-badge absent">{{ date }}</span>
-                        {% empty %}
-                        <p class="empty-message">لا توجد أيام غياب في هذه الفترة</p>
-                        {% endfor %}
+                        {% if person_result.absent_dates %}
+                            {% for date in person_result.absent_dates %}
+                            <span class="date-badge absent">{{ date }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="empty-message">لا توجد أيام غياب في هذه الفترة</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -375,6 +418,107 @@
             font-style: italic;
             text-align: center;
             padding: 2rem;
+        }
+
+        .available-dates-info {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .available-dates-info h4 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            font-size: 16px;
+        }
+
+        .dates-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .more-dates {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .no-data-message {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .no-data-message p {
+            color: var(--danger-color);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .person-list-helper {
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .person-list-helper h4 {
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+            font-size: 16px;
+        }
+
+        .persons-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            background: white;
+        }
+
+        .person-compact {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .person-number {
+            background: var(--accent-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .person-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .helper-text {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            margin: 0;
         }
 
         .danger-card {

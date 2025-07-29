@@ -20,13 +20,13 @@
     <form method="post" action="/attendance" id="attendanceForm">
         <div class="persons-grid" id="personsGrid">
             {% for person in persons %}
-            <div class="person-attendance-card" data-stage="{{ person.grade }}" data-person-id="{{ person[0] }}">
+            <div class="person-attendance-card" data-stage="{{ person[4] }}" data-person-id="{{ person[0] }}">
                 <div class="person-header">
                     <div class="person-info">
                         <div class="person-name">{{ person[1] }}</div>
                         <div class="person-details">
-                            <span class="stage-badge">{{ person.grade }}</span> • 
-                            <span class="gender-badge">{{ person.gender }}</span>
+                            <span class="stage-badge">{{ person[4] }}</span> • 
+                            <span class="gender-badge">{{ person[5] }}</span>
                         </div>
                     </div>
                     <div class="attendance-status">
@@ -324,16 +324,20 @@
 
         // Enhanced filter function for attendance page
         function filterByStage(stage) {
-            const items = document.querySelectorAll('[data-stage]');
+            const items = document.querySelectorAll('.person-attendance-card[data-stage]');
             const filterBtns = document.querySelectorAll('.filter-btn');
             
             // Update active filter button
             filterBtns.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-filter="${stage}"]`).classList.add('active');
+            const targetBtn = document.querySelector(`[data-filter="${stage}"]`);
+            if (targetBtn) {
+                targetBtn.classList.add('active');
+            }
             
             // Show/hide items based on stage
             items.forEach(item => {
-                if (stage === 'all' || item.dataset.stage === stage) {
+                const itemStage = item.getAttribute('data-stage');
+                if (stage === 'all' || itemStage === stage) {
                     item.style.display = 'block';
                 } else {
                     item.style.display = 'none';
