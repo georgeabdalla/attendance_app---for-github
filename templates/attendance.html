@@ -20,15 +20,15 @@
     <form method="post" action="/attendance" id="attendanceForm">
         <div class="persons-grid" id="personsGrid">
             {% for person in persons %}
-            <div class="person-attendance-card" data-stage="{{ person.grade }}" data-person-id="{{ person[0] }}">
-                <div class="person-header">
-                    <div class="person-info">
-                        <div class="person-name">{{ person[1] }}</div>
-                        <div class="person-details">
-                            <span class="stage-badge">{{ person.grade }}</span> • 
-                            <span class="gender-badge">{{ person.gender }}</span>
-                        </div>
-                    </div>
+                         <div class="person-attendance-card" data-stage="{{ person[4] }}" data-person-id="{{ person[0] }}">
+                 <div class="person-header">
+                     <div class="person-info">
+                         <div class="person-name">{{ person[1] }}</div>
+                         <div class="person-details">
+                             <span class="stage-badge">{{ person[4] }}</span> • 
+                             <span class="gender-badge">{{ person[5] }}</span>
+                         </div>
+                     </div>
                     <div class="attendance-status">
                         {% if person[2] == '✅' %}
                             <span class="status-present">حاضر</span>

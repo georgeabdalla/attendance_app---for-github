@@ -53,16 +53,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for name in present_names %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ name }}</td>
-                                </tr>
-                                {% empty %}
+                                {% if present_names %}
+                                    {% for name in present_names %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
                                 <tr>
                                     <td colspan="2" class="empty-row">لا يوجد حضور في هذا التاريخ</td>
                                 </tr>
-                                {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -79,16 +81,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for name in absent_names %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ name }}</td>
-                                </tr>
-                                {% empty %}
+                                {% if absent_names %}
+                                    {% for name in absent_names %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ name }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
                                 <tr>
                                     <td colspan="2" class="empty-row">جميع الأشخاص حاضرون</td>
                                 </tr>
-                                {% endfor %}
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -158,22 +162,26 @@
                 <div class="detail-section">
                     <h4>✅ تواريخ الحضور</h4>
                     <div class="dates-list">
-                        {% for date in person_result.present_dates %}
-                        <span class="date-badge present">{{ date }}</span>
-                        {% empty %}
+                        {% if person_result.present_dates %}
+                            {% for date in person_result.present_dates %}
+                            <span class="date-badge present">{{ date }}</span>
+                            {% endfor %}
+                        {% else %}
                         <p class="empty-message">لا توجد أيام حضور في هذه الفترة</p>
-                        {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
 
                 <div class="detail-section">
                     <h4>❌ تواريخ الغياب</h4>
                     <div class="dates-list">
-                        {% for date in person_result.absent_dates %}
-                        <span class="date-badge absent">{{ date }}</span>
-                        {% empty %}
+                        {% if person_result.absent_dates %}
+                            {% for date in person_result.absent_dates %}
+                            <span class="date-badge absent">{{ date }}</span>
+                            {% endfor %}
+                        {% else %}
                         <p class="empty-message">لا توجد أيام غياب في هذه الفترة</p>
-                        {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
